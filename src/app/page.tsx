@@ -1,101 +1,133 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function Home() {
+// Interface pour représenter un chapitre
+interface Chapter {
+  id: number;
+  title: string;
+  short: string;
+  long: string;
+}
+
+// Header fixe avec logo SVG et titre
+const Header: React.FC = () => {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <header className="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center">
+        <svg
+          className="h-8 w-8 text-blue-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+        <h1 className="ml-3 text-2xl font-semibold text-gray-800">Mon Application</h1>
+      </div>
+    </header>
+  );
+};
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+// Composant Card pour afficher un chapitre avec contenu dépliable
+const ChapterCard: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <motion.div
+      className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.4 }}
+    >
+      <h3 className="text-xl font-bold mb-2 text-gray-800">{chapter.title}</h3>
+      <p className="italic text-gray-700">{chapter.short}</p>
+
+      {/* Bouton stylé pour déplier/replier */}
+      <button
+        className="mt-3 flex items-center gap-2 bg-blue-500 text-white px-3 py-1 rounded-full hover:bg-blue-600 transition-colors"
+        onClick={() => setExpanded((prev) => !prev)}
+      >
+        <span>{expanded ? "Réduire" : "Voir plus"}</span>
+        <motion.svg
+          className="h-4 w-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </motion.svg>
+      </button>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            key="content"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mt-2 text-gray-600 whitespace-pre-wrap overflow-hidden"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {chapter.long}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+// Composant principal qui récupère et affiche les chapitres depuis l'API
+export default function Home() {
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/grist-read/Chapters");
+        if (!res.ok) {
+          throw new Error(`Erreur lors de l'appel à l'API: ${res.statusText}`);
+        }
+        const json = await res.json();
+        const chaptersData: Chapter[] = json.records.map((record: any) => ({
+          id: record.id,
+          title: record.fields.title,
+          short: record.fields.short,
+          long: record.fields.long,
+        }));
+        setChapters(chaptersData);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-r from-gray-100 to-gray-200 pt-20">
+      <Header />
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <h2 className="text-3xl font-bold mb-6 text-gray-800">Chapitres</h2>
+        {loading && <p>Chargement des données...</p>}
+        {error && <p className="text-red-500">Erreur : {error}</p>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {chapters.map((chapter) => (
+            <ChapterCard key={chapter.id} chapter={chapter} />
+          ))}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
