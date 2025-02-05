@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { GristResponse } from "../../../types/grist"; 
+import { NextResponse } from 'next/server';
+import { GristResponse } from '../../../types/grist';
 
 export async function POST(
   request: Request,
-  { params }: { params: Record<string, string> }
+  { params, searchParams }: { params: { table: string }; searchParams?: URLSearchParams }
 ): Promise<NextResponse> {
   try {
     const { table } = params;
@@ -12,10 +12,10 @@ export async function POST(
     const url = `${process.env.GRIST_API_URL}/api/docs/${process.env.GRIST_DOC_ID}/tables/${table}/records`;
     
     const response = await fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Authorization": `Bearer ${process.env.GRIST_API_TOKEN}`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${process.env.GRIST_API_TOKEN}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(body)
     });
@@ -28,9 +28,10 @@ export async function POST(
     const data = (await response.json()) as GristResponse;
     return NextResponse.json(data, { status: 201 });
   } catch (error: unknown) {
+    console.error('Erreur lors de l’écriture sur Grist:', error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
+    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
   }
 }
