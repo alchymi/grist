@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { GristResponse } from '../../../types/grist';
+import { GristResponse } from '../../../types/grist'; 
 
 export async function POST(
   request: Request,
-  { params, searchParams }: { params: { table: string }; searchParams?: URLSearchParams }
+  { params, searchParams: _searchParams }: { params: { table: string }; searchParams?: URLSearchParams }
 ): Promise<NextResponse> {
   try {
     const { table } = params;
