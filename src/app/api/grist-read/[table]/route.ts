@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { GristResponse } from "../../../types/grist"; 
 
 export async function GET(
   request: Request,
@@ -26,10 +27,14 @@ export async function GET(
       throw new Error(`Erreur Grist : ${response.statusText} - ${errorText}`);
     }
     
-    const data = await response.json();
+    const data = (await response.json()) as GristResponse;
     return NextResponse.json(data, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la lecture des données depuis Grist :", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ error: "Unknown error" }, { status: 500 });
+    }
   }
 }

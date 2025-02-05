@@ -3,15 +3,9 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import {GristRecord, GristResponse , Chapter} from "./types/grist"; 
 
-// Interface pour représenter un chapitre
-interface Chapter {
-  id: number;
-  title: string;
-  short: string;
-  long: string;
-}
-
+ 
 // Header fixe avec logo SVG et titre ezf
 const Header: React.FC = () => {
   return (
@@ -98,16 +92,17 @@ export default function Home() {
         if (!res.ok) {
           throw new Error(`Erreur lors de l'appel à l'API: ${res.statusText}`);
         }
-        const json = await res.json();
-        const chaptersData: Chapter[] = json.records.map((record: any) => ({
+        const json = await res.json() as GristResponse;
+        const chaptersData: Chapter[] = json.records.map((record: GristRecord) => ({
           id: record.id,
           title: record.fields.title,
           short: record.fields.short,
           long: record.fields.long,
         }));
         setChapters(chaptersData);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        // Si vous utilisez unknown, vous pouvez convertir en string via String(err)
+        setError(String(err));
       } finally {
         setLoading(false);
       }

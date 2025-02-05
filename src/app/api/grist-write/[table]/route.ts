@@ -1,9 +1,9 @@
-// app/api/grist-write/route.ts
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const bodyData = await request.json();
+    // On typpe le corps en unknown (vous pouvez le raffiner si vous disposez d'une interface)
+    const bodyData = await request.json() as unknown;
 
     const res = await fetch(`${process.env.GRIST_API_URL}/votre-endpoint-d-ecriture`, {
       method: 'POST',
@@ -15,13 +15,17 @@ export async function POST(request: Request): Promise<NextResponse> {
     });
 
     if (!res.ok) {
-      throw new Error(`Erreur Grist: ${res.statusText}`);
+      const errorText = await res.text();
+      throw new Error(`Erreur Grist: ${res.statusText} - ${errorText}`);
     }
 
     const data = await res.json();
     return NextResponse.json(data, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de l’écriture sur Grist:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
   }
 }

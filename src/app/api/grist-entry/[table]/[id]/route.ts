@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { GristResponse } from "../../../../types/grist"; 
 
 export async function GET(
   request: Request,
@@ -20,8 +21,11 @@ export async function GET(
     }
     const data = await response.json();
     return NextResponse.json(data, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
   }
 }
 
@@ -31,7 +35,7 @@ export async function PUT(
 ): Promise<NextResponse> {
   try {
     const { table, id } = params;
-    const body = await request.json();
+    const body = await request.json() as unknown;
     const url = `${process.env.GRIST_API_URL}/api/docs/${process.env.GRIST_DOC_ID}/tables/${table}/records/${id}`;
     
     const response = await fetch(url, {
@@ -49,19 +53,21 @@ export async function PUT(
     }
     const data = await response.json();
     return NextResponse.json(data, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
   }
 }
 
-// Si vous préférez PATCH pour une modification partielle, vous pouvez ajouter une méthode PATCH similaire :
 export async function PATCH(
   request: Request,
   { params }: { params: { table: string; id: string } }
 ): Promise<NextResponse> {
   try {
     const { table, id } = params;
-    const body = await request.json();
+    const body = await request.json() as unknown;
     const url = `${process.env.GRIST_API_URL}/api/docs/${process.env.GRIST_DOC_ID}/tables/${table}/records/${id}`;
     
     const response = await fetch(url, {
@@ -79,8 +85,11 @@ export async function PATCH(
     }
     const data = await response.json();
     return NextResponse.json(data, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
   }
 }
 
@@ -104,9 +113,11 @@ export async function DELETE(
       const errorText = await response.text();
       throw new Error(`Erreur lors de la suppression : ${response.statusText} - ${errorText}`);
     }
-    // Vous pouvez choisir d'envoyer un statut 204 No Content pour une suppression réussie
     return NextResponse.json({ message: "Supprimé avec succès" }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
   }
 }
