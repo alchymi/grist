@@ -3,10 +3,10 @@ import { GristResponse } from "../../../types/grist";
 
 export async function GET(
   request: Request,
-  { params }: { params: { table: string } }
+  { params, searchParams: _searchParams }: { params: { table: string }; searchParams?: URLSearchParams }
 ): Promise<NextResponse> {
   try {
-    // Attendre explicitement les params pour satisfaire Next.js
+    // Attendre explicitement les params
     const awaitedParams = await Promise.resolve(params);
     const { table } = awaitedParams;
     
@@ -33,8 +33,7 @@ export async function GET(
     console.error("Erreur lors de la lecture des données depuis Grist :", error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: "Unknown error" }, { status: 500 });
     }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
   }
 }
