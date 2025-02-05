@@ -3,7 +3,7 @@ import { GristResponse } from "../../../types/grist";
 
 export async function POST(
   request: Request,
-  { params }: { params: { table: string } }
+  { params }: { params: Record<string, string> }
 ): Promise<NextResponse> {
   try {
     const { table } = params;
