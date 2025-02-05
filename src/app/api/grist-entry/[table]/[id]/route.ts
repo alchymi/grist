@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 
-
 export async function GET(
   request: Request,
-  { params }: { params: { table: string; id: string } }
+  { params }: { params: Record<string, string> }
 ): Promise<NextResponse> {
   try {
     const { table, id } = params;
@@ -31,7 +30,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { table: string; id: string } }
+  { params }: { params: Record<string, string> }
 ): Promise<NextResponse> {
   try {
     const { table, id } = params;
@@ -63,7 +62,7 @@ export async function PUT(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { table: string; id: string } }
+  { params }: { params: Record<string, string> }
 ): Promise<NextResponse> {
   try {
     const { table, id } = params;
@@ -95,7 +94,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { table: string; id: string } }
+  { params }: { params: Record<string, string> }
 ): Promise<NextResponse> {
   try {
     const { table, id } = params;
